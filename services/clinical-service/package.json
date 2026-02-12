@@ -1,0 +1,33 @@
+{
+  "name": "@medtrust/clinical-service",
+  "version": "1.0.0",
+  "description": "Clinical service for MedTrust healthcare platform",
+  "main": "dist/main.js",
+  "scripts": {
+    "dev": "ts-node-dev --respawn --transpile-only -r tsconfig-paths/register src/main.ts",
+    "build": "tsc",
+    "start": "node -r tsconfig-paths/register dist/main.js",
+    "lint": "eslint src/**/*.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "typeorm": "^0.3.20",
+    "pg": "^8.13.1",
+    "kafkajs": "^2.2.4",
+    "uuid": "^11.0.5",
+    "dotenv": "^16.4.7",
+    "cors": "^2.8.5",
+    "helmet": "^8.0.0",
+    "reflect-metadata": "^0.2.2"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.12.0",
+    "@types/uuid": "^10.0.0",
+    "@types/cors": "^2.8.17",
+    "typescript": "^5.7.3",
+    "ts-node-dev": "^2.0.0",
+    "tsconfig-paths": "^4.2.0"
+  }
+}
