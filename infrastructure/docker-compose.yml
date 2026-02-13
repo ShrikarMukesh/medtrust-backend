@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  clinical-db:
+    image: postgres:16-alpine
+    container_name: clinical-db
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: clinical_service
+      POSTGRES_USER: medtrust
+      POSTGRES_PASSWORD: changeme
+    volumes:
+      - clinical_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U medtrust -d clinical_service"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  clinical_db_data:
