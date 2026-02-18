@@ -116,7 +116,7 @@ Each service:
 
 **Backend**
 
-* Node.js (NestJS-style architecture)
+* Java 21 (Spring Boot 3.4)
 * PostgreSQL
 * MongoDB
 

@@ -1,28 +1,25 @@
 # ── Build stage ──
-FROM node:20-alpine AS builder
+FROM eclipse-temurin:21-jdk-alpine AS builder
 
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm ci
+COPY pom.xml ./
+COPY .mvn .mvn
+COPY mvnw ./
+RUN chmod +x mvnw && ./mvnw dependency:go-offline -B
 
-COPY tsconfig.json ./
 COPY src ./src
-
-RUN npm run build
+RUN ./mvnw clean package -DskipTests -B
 
 # ── Production stage ──
-FROM node:20-alpine
+FROM eclipse-temurin:21-jre-alpine
 
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm ci --omit=dev
+COPY --from=builder /app/target/*.jar app.jar
 
-COPY --from=builder /app/dist ./dist
+ENV JAVA_OPTS=""
 
-ENV NODE_ENV=production
+EXPOSE 8080
 
-EXPOSE 3001
-
-CMD ["node", "dist/main.js"]
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
