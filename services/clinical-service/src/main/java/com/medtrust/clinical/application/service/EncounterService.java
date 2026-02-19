@@ -9,6 +9,9 @@ import com.medtrust.clinical.domain.model.Encounter;
 import com.medtrust.clinical.domain.model.NoteType;
 import com.medtrust.clinical.domain.repository.EncounterRepository;
 import com.medtrust.clinical.domain.repository.PatientRepository;
+import com.medtrust.clinical.infrastructure.kafka.ClinicalKafkaProducer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,75 +19,125 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class EncounterService {
 
-    private final EncounterRepository encounterRepository;
-    private final PatientRepository patientRepository;
+        private static final Logger log = LoggerFactory.getLogger(EncounterService.class);
+        private static final String CLINICAL_EVENTS_TOPIC = "clinical-events";
 
-    public EncounterService(EncounterRepository encounterRepository,
-            PatientRepository patientRepository) {
-        this.encounterRepository = encounterRepository;
-        this.patientRepository = patientRepository;
-    }
+        private final EncounterRepository encounterRepository;
+        private final PatientRepository patientRepository;
+        private final ClinicalKafkaProducer kafkaProducer;
 
-    public EncounterResponse create(CreateEncounterRequest request) {
-        patientRepository.findById(request.patientId())
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Patient with ID " + request.patientId() + " not found"));
+        public EncounterService(EncounterRepository encounterRepository,
+                        PatientRepository patientRepository,
+                        ClinicalKafkaProducer kafkaProducer) {
+                this.encounterRepository = encounterRepository;
+                this.patientRepository = patientRepository;
+                this.kafkaProducer = kafkaProducer;
+        }
 
-        Encounter encounter = Encounter.create(request.patientId());
-        Encounter saved = encounterRepository.save(encounter);
-        return toResponse(saved);
-    }
+        public EncounterResponse create(CreateEncounterRequest request) {
+                patientRepository.findById(request.patientId())
+                                .orElseThrow(() -> new IllegalArgumentException(
+                                                "Patient with ID " + request.patientId() + " not found"));
 
-    @Transactional(readOnly = true)
-    public EncounterResponse getById(String id) {
-        Encounter encounter = encounterRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Encounter with ID " + id + " not found"));
-        return toResponse(encounter);
-    }
+                Encounter encounter = Encounter.create(request.patientId());
+                Encounter saved = encounterRepository.save(encounter);
 
-    public ClinicalNoteResponseDTO addNote(String encounterId, AddClinicalNoteRequest request) {
-        Encounter encounter = encounterRepository.findById(encounterId)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Encounter with ID " + encounterId + " not found"));
+                // Publish domain events (EncounterCreatedEvent) to Kafka
+                publishDomainEvents(saved);
 
-        ClinicalNote note = encounter.addNote(
-                request.content(),
-                request.authorId(),
-                NoteType.valueOf(request.noteType()));
+                return toResponse(saved);
+        }
 
-        encounterRepository.save(encounter);
+        public EncounterResponse admit(String id) {
+                Encounter encounter = encounterRepository.findById(id)
+                                .orElseThrow(() -> new IllegalArgumentException(
+                                                "Encounter with ID " + id + " not found"));
 
-        return new ClinicalNoteResponseDTO(
-                note.getId(),
-                note.getEncounterId(),
-                note.getContent(),
-                note.getAuthorId(),
-                note.getNoteType().name(),
-                note.getCreatedAt().toString());
-    }
+                encounter.admit();
+                Encounter saved = encounterRepository.save(encounter);
 
-    private EncounterResponse toResponse(Encounter encounter) {
-        return new EncounterResponse(
-                encounter.getId(),
-                encounter.getPatientId(),
-                encounter.getStatus().name(),
-                encounter.getStartDate().toString(),
-                encounter.getEndDate() != null ? encounter.getEndDate().toString() : null,
-                encounter.getClinicalNotes().stream()
-                        .map(n -> new EncounterResponse.ClinicalNoteResponse(
-                                n.getId(),
-                                n.getContent(),
-                                n.getAuthorId(),
-                                n.getNoteType().name(),
-                                n.getCreatedAt().toString()))
-                        .toList(),
-                encounter.getDiagnoses().stream()
-                        .map(d -> new EncounterResponse.DiagnosisResponse(
-                                d.getCode(),
-                                d.getDescription()))
-                        .toList(),
-                encounter.getCreatedAt().toString(),
-                encounter.getUpdatedAt().toString());
-    }
+                // Publish domain events (PatientAdmittedEvent) to Kafka
+                publishDomainEvents(saved);
+
+                return toResponse(saved);
+        }
+
+        public EncounterResponse discharge(String id) {
+                Encounter encounter = encounterRepository.findById(id)
+                                .orElseThrow(() -> new IllegalArgumentException(
+                                                "Encounter with ID " + id + " not found"));
+
+                encounter.discharge();
+                Encounter saved = encounterRepository.save(encounter);
+
+                // Publish domain events (PatientDischargedEvent) to Kafka
+                publishDomainEvents(saved);
+
+                return toResponse(saved);
+        }
+
+        @Transactional(readOnly = true)
+        public EncounterResponse getById(String id) {
+                Encounter encounter = encounterRepository.findById(id)
+                                .orElseThrow(() -> new IllegalArgumentException(
+                                                "Encounter with ID " + id + " not found"));
+                return toResponse(encounter);
+        }
+
+        public ClinicalNoteResponseDTO addNote(String encounterId, AddClinicalNoteRequest request) {
+                Encounter encounter = encounterRepository.findById(encounterId)
+                                .orElseThrow(() -> new IllegalArgumentException(
+                                                "Encounter with ID " + encounterId + " not found"));
+
+                ClinicalNote note = encounter.addNote(
+                                request.content(),
+                                request.authorId(),
+                                NoteType.valueOf(request.noteType()));
+
+                encounterRepository.save(encounter);
+
+                return new ClinicalNoteResponseDTO(
+                                note.getId(),
+                                note.getEncounterId(),
+                                note.getContent(),
+                                note.getAuthorId(),
+                                note.getNoteType().name(),
+                                note.getCreatedAt().toString());
+        }
+
+        /**
+         * Pulls domain events from the aggregate and publishes each to Kafka.
+         * The Kafka producer is protected by @CircuitBreaker + @Retry,
+         * so if Kafka is down the circuit will trip and fallback will log the event.
+         */
+        private void publishDomainEvents(Encounter encounter) {
+                encounter.pullDomainEvents().forEach(event -> {
+                        log.info("[EncounterService] Publishing domain event: {}", event.eventType());
+                        kafkaProducer.publish(CLINICAL_EVENTS_TOPIC, event);
+                });
+        }
+
+        private EncounterResponse toResponse(Encounter encounter) {
+                return new EncounterResponse(
+                                encounter.getId(),
+                                encounter.getPatientId(),
+                                encounter.getStatus().name(),
+                                encounter.getStartDate().toString(),
+                                encounter.getEndDate() != null ? encounter.getEndDate().toString() : null,
+                                encounter.getClinicalNotes().stream()
+                                                .map(n -> new EncounterResponse.ClinicalNoteResponse(
+                                                                n.getId(),
+                                                                n.getContent(),
+                                                                n.getAuthorId(),
+                                                                n.getNoteType().name(),
+                                                                n.getCreatedAt().toString()))
+                                                .toList(),
+                                encounter.getDiagnoses().stream()
+                                                .map(d -> new EncounterResponse.DiagnosisResponse(
+                                                                d.getCode(),
+                                                                d.getDescription()))
+                                                .toList(),
+                                encounter.getCreatedAt().toString(),
+                                encounter.getUpdatedAt().toString());
+        }
 }

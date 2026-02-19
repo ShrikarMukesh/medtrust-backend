@@ -9,9 +9,7 @@ import com.medtrust.clinical.domain.repository.PatientRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneOffset;
 
 @Service
 @Transactional
@@ -28,9 +26,7 @@ public class PatientService {
             throw new IllegalArgumentException("Patient with MRN " + request.mrn() + " already exists");
         });
 
-        Instant dob = LocalDate.parse(request.dateOfBirth())
-                .atStartOfDay(ZoneOffset.UTC)
-                .toInstant();
+        LocalDate dob = LocalDate.parse(request.dateOfBirth());
 
         Patient patient = Patient.create(
                 request.mrn(),

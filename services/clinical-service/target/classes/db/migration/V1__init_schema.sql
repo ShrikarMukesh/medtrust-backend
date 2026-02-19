@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS patients (
     last_name       VARCHAR(255) NOT NULL,
     date_of_birth   DATE NOT NULL,
     gender          VARCHAR(50) NOT NULL,
-    contact_info    JSONB NOT NULL,
+    contact_info    JSONB NOT NULL DEFAULT '{}',
     created_at      TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at      TIMESTAMP NOT NULL DEFAULT NOW()
 );

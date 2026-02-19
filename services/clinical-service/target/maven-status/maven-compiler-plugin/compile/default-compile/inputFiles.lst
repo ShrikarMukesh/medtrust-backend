@@ -23,7 +23,6 @@
 /home/shrikar/2026-Dev/medtrust-backend/services/clinical-service/src/main/java/com/medtrust/clinical/domain/model/valueobject/PatientId.java
 /home/shrikar/2026-Dev/medtrust-backend/services/clinical-service/src/main/java/com/medtrust/clinical/domain/repository/EncounterRepository.java
 /home/shrikar/2026-Dev/medtrust-backend/services/clinical-service/src/main/java/com/medtrust/clinical/domain/repository/PatientRepository.java
-/home/shrikar/2026-Dev/medtrust-backend/services/clinical-service/src/main/java/com/medtrust/clinical/infrastructure/client/ExternalServiceClient.java
 /home/shrikar/2026-Dev/medtrust-backend/services/clinical-service/src/main/java/com/medtrust/clinical/infrastructure/config/ResilienceConfig.java
 /home/shrikar/2026-Dev/medtrust-backend/services/clinical-service/src/main/java/com/medtrust/clinical/infrastructure/kafka/ClinicalKafkaProducer.java
 /home/shrikar/2026-Dev/medtrust-backend/services/clinical-service/src/main/java/com/medtrust/clinical/infrastructure/persistence/adapter/JpaEncounterRepositoryAdapter.java

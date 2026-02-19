@@ -2,6 +2,7 @@ package com.medtrust.clinical.infrastructure.persistence.entity;
 
 import jakarta.persistence.*;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
@@ -22,7 +23,7 @@ public class PatientJpaEntity {
     private String lastName;
 
     @Column(name = "date_of_birth", nullable = false)
-    private Instant dateOfBirth;
+    private LocalDate dateOfBirth;
 
     @Column(nullable = false)
     private String gender;
@@ -74,11 +75,11 @@ public class PatientJpaEntity {
         this.lastName = lastName;
     }
 
-    public Instant getDateOfBirth() {
+    public LocalDate getDateOfBirth() {
         return dateOfBirth;
     }
 
-    public void setDateOfBirth(Instant dateOfBirth) {
+    public void setDateOfBirth(LocalDate dateOfBirth) {
         this.dateOfBirth = dateOfBirth;
     }
 

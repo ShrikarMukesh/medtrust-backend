@@ -65,6 +65,13 @@ resilience4j:
                 slidingWindowSize: 5
                 failureRateThreshold: 60
                 waitDurationInOpenState: 15s
+            demoService:
+                baseConfig: default
+                slidingWindowSize: 5
+                minimumNumberOfCalls: 3
+                failureRateThreshold: 50
+                waitDurationInOpenState: 10s
+                permittedNumberOfCallsInHalfOpenState: 2
 
     retry:
         configs:
@@ -96,6 +103,11 @@ resilience4j:
                     - org.apache.kafka.common.errors.TimeoutException
                     - org.apache.kafka.common.errors.RetriableException
                     - java.lang.RuntimeException
+            demoService:
+                maxAttempts: 1
+                waitDuration: 100ms
+                retryExceptions:
+                    - java.lang.RuntimeException
 
     bulkhead:
         configs:
@@ -108,6 +120,8 @@ resilience4j:
             billingService:
                 baseConfig: default
                 maxConcurrentCalls: 5
+            demoService:
+                baseConfig: default
             labService:
                 baseConfig: default
                 maxConcurrentCalls: 15

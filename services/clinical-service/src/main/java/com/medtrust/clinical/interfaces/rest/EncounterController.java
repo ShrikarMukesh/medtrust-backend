@@ -35,6 +35,18 @@ public class EncounterController {
         return ResponseEntity.ok(Map.of("success", true, "data", response));
     }
 
+    @PutMapping("/{id}/admit")
+    public ResponseEntity<Map<String, Object>> admit(@PathVariable String id) {
+        EncounterResponse response = encounterService.admit(id);
+        return ResponseEntity.ok(Map.of("success", true, "data", response));
+    }
+
+    @PutMapping("/{id}/discharge")
+    public ResponseEntity<Map<String, Object>> discharge(@PathVariable String id) {
+        EncounterResponse response = encounterService.discharge(id);
+        return ResponseEntity.ok(Map.of("success", true, "data", response));
+    }
+
     @PostMapping("/{id}/notes")
     public ResponseEntity<Map<String, Object>> addNote(
             @PathVariable String id,
