@@ -4,7 +4,6 @@ com/medtrust/clinical/domain/model/ContactInfo.class
 com/medtrust/clinical/domain/model/Gender.class
 com/medtrust/clinical/application/dto/RegisterPatientRequest$ContactInfoRequest.class
 com/medtrust/clinical/infrastructure/persistence/entity/PatientJpaEntity.class
-com/medtrust/clinical/infrastructure/kafka/ClinicalKafkaConsumer.class
 com/medtrust/clinical/infrastructure/persistence/entity/ContactInfoData.class
 com/medtrust/clinical/application/dto/RegisterPatientRequest.class
 com/medtrust/clinical/infrastructure/persistence/repository/PatientJpaRepository.class
