@@ -14,10 +14,29 @@ services:
     volumes:
       - clinical_db_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U medtrust -d clinical_service"]
+      test: [ "CMD-SHELL", "pg_isready -U medtrust -d clinical_service" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  appointment-db:
+    image: postgres:16-alpine
+    container_name: appointment-db
+    restart: unless-stopped
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: appointment_service
+      POSTGRES_USER: medtrust
+      POSTGRES_PASSWORD: changeme
+    volumes:
+      - appointment_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U medtrust -d appointment_service" ]
       interval: 10s
       timeout: 5s
       retries: 5
 
 volumes:
   clinical_db_data:
+  appointment_db_data:

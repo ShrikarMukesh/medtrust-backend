@@ -1,0 +1,109 @@
+server:
+    port: 8082
+
+spring:
+    application:
+        name: appointment-service
+
+    datasource:
+        url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_DATABASE:appointment_service}
+        username: ${DB_USERNAME:medtrust}
+        password: ${DB_PASSWORD:changeme}
+        driver-class-name: org.postgresql.Driver
+
+    jpa:
+        hibernate:
+            ddl-auto: validate
+        show-sql: true
+        open-in-view: false
+        properties:
+            hibernate:
+                format_sql: true
+                dialect: org.hibernate.dialect.PostgreSQLDialect
+
+    flyway:
+        enabled: true
+        locations: classpath:db/migration
+        baseline-on-migrate: true
+
+    kafka:
+        bootstrap-servers: ${KAFKA_BROKER:localhost:29093}
+        producer:
+            key-serializer: org.apache.kafka.common.serialization.StringSerializer
+            value-serializer: org.apache.kafka.common.serialization.StringSerializer
+        consumer:
+            group-id: ${KAFKA_GROUP_ID:appointment-service-group}
+            auto-offset-reset: earliest
+            key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+            value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+# ─── Resilience4j Configuration ────────────────────────────────────────
+
+resilience4j:
+    circuitbreaker:
+        configs:
+            default:
+                registerHealthIndicator: true
+                slidingWindowType: COUNT_BASED
+                slidingWindowSize: 10
+                minimumNumberOfCalls: 5
+                failureRateThreshold: 50
+                waitDurationInOpenState: 30s
+                permittedNumberOfCallsInHalfOpenState: 3
+                automaticTransitionFromOpenToHalfOpenEnabled: true
+        instances:
+            kafkaProducer:
+                baseConfig: default
+                slidingWindowSize: 5
+                failureRateThreshold: 60
+                waitDurationInOpenState: 15s
+
+    retry:
+        configs:
+            default:
+                maxAttempts: 3
+                waitDuration: 1s
+                enableExponentialBackoff: true
+                exponentialBackoffMultiplier: 2
+                enableRandomizedWait: true
+                randomizedWaitFactor: 0.5
+                retryExceptions:
+                    - java.io.IOException
+                    - java.net.SocketTimeoutException
+                    - org.springframework.web.client.ResourceAccessException
+                ignoreExceptions:
+                    - java.lang.IllegalArgumentException
+        instances:
+            kafkaProducer:
+                baseConfig: default
+                waitDuration: 500ms
+                retryExceptions:
+                    - org.apache.kafka.common.errors.TimeoutException
+                    - org.apache.kafka.common.errors.RetriableException
+                    - java.lang.RuntimeException
+
+    bulkhead:
+        configs:
+            default:
+                maxConcurrentCalls: 10
+                maxWaitDuration: 100ms
+
+# ─── Actuator ──────────────────────────────────────────────────────────
+
+management:
+    endpoints:
+        web:
+            exposure:
+                include: health,info,circuitbreakers,retries,bulkheads,metrics
+    endpoint:
+        health:
+            show-details: always
+    health:
+        circuitbreakers:
+            enabled: true
+
+logging:
+    level:
+        com.medtrust.appointment: DEBUG
+        org.hibernate.SQL: DEBUG
+        io.github.resilience4j: INFO
