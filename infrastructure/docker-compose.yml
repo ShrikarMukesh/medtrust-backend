@@ -1,42 +1,36 @@
 version: '3.8'
 
 services:
-  clinical-db:
+  medtrust-db:
     image: postgres:16-alpine
-    container_name: clinical-db
-    restart: unless-stopped
+    container_name: medtrust-db
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_DB: clinical_service
       POSTGRES_USER: medtrust
       POSTGRES_PASSWORD: changeme
     volumes:
-      - clinical_db_data:/var/lib/postgresql/data
+      - medtrust_db_data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U medtrust -d clinical_service" ]
+      test: [ "CMD-SHELL", "pg_isready -U medtrust -d postgres" ]
       interval: 10s
       timeout: 5s
       retries: 5
-
-  appointment-db:
-    image: postgres:16-alpine
-    container_name: appointment-db
-    restart: unless-stopped
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
     ports:
-      - "5433:5432"
+      - "5672:5672"
+      - "15672:15672"
     environment:
-      POSTGRES_DB: appointment_service
-      POSTGRES_USER: medtrust
-      POSTGRES_PASSWORD: changeme
-    volumes:
-      - appointment_db_data:/var/lib/postgresql/data
+      RABBITMQ_DEFAULT_USER: medtrust
+      RABBITMQ_DEFAULT_PASS: changeme
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U medtrust -d appointment_service" ]
+      test: rabbitmq-diagnostics -q ping
       interval: 10s
       timeout: 5s
       retries: 5
 
 volumes:
-  clinical_db_data:
-  appointment_db_data:
+  medtrust_db_data:

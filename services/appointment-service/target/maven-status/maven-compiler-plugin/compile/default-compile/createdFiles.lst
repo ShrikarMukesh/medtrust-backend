@@ -3,6 +3,7 @@ com/medtrust/appointment/application/dto/RescheduleAppointmentRequest.class
 com/medtrust/appointment/domain/event/DomainEvent.class
 com/medtrust/appointment/application/service/AppointmentService.class
 com/medtrust/appointment/application/dto/CreateAppointmentRequest.class
+com/medtrust/appointment/infrastructure/messaging/rabbitmq/RabbitMQConfig.class
 com/medtrust/appointment/domain/repository/AppointmentRepository.class
 com/medtrust/appointment/domain/event/AppointmentRescheduledEvent.class
 com/medtrust/appointment/infrastructure/persistence/repository/AppointmentJpaRepository.class
@@ -17,4 +18,5 @@ com/medtrust/appointment/AppointmentServiceApplication.class
 com/medtrust/appointment/domain/event/AppointmentCancelledEvent.class
 com/medtrust/appointment/domain/model/AppointmentStatus.class
 com/medtrust/appointment/domain/model/Appointment.class
+com/medtrust/appointment/infrastructure/messaging/rabbitmq/NotificationProducer.class
 com/medtrust/appointment/domain/model/AppointmentType.class

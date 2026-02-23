@@ -37,6 +37,12 @@ spring:
             key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
             value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
 
+    rabbitmq:
+        host: ${RABBITMQ_HOST:localhost}
+        port: ${RABBITMQ_PORT:5672}
+        username: ${RABBITMQ_USERNAME:medtrust}
+        password: ${RABBITMQ_PASSWORD:changeme}
+
 # ─── Resilience4j Configuration ────────────────────────────────────────
 
 resilience4j:

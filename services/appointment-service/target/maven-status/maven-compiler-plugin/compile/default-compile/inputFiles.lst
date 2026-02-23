@@ -13,6 +13,8 @@
 /home/shrikar/2026-Dev/medtrust-backend/services/appointment-service/src/main/java/com/medtrust/appointment/domain/repository/AppointmentRepository.java
 /home/shrikar/2026-Dev/medtrust-backend/services/appointment-service/src/main/java/com/medtrust/appointment/infrastructure/config/ResilienceConfig.java
 /home/shrikar/2026-Dev/medtrust-backend/services/appointment-service/src/main/java/com/medtrust/appointment/infrastructure/kafka/AppointmentKafkaProducer.java
+/home/shrikar/2026-Dev/medtrust-backend/services/appointment-service/src/main/java/com/medtrust/appointment/infrastructure/messaging/rabbitmq/NotificationProducer.java
+/home/shrikar/2026-Dev/medtrust-backend/services/appointment-service/src/main/java/com/medtrust/appointment/infrastructure/messaging/rabbitmq/RabbitMQConfig.java
 /home/shrikar/2026-Dev/medtrust-backend/services/appointment-service/src/main/java/com/medtrust/appointment/infrastructure/persistence/adapter/JpaAppointmentRepositoryAdapter.java
 /home/shrikar/2026-Dev/medtrust-backend/services/appointment-service/src/main/java/com/medtrust/appointment/infrastructure/persistence/entity/AppointmentJpaEntity.java
 /home/shrikar/2026-Dev/medtrust-backend/services/appointment-service/src/main/java/com/medtrust/appointment/infrastructure/persistence/repository/AppointmentJpaRepository.java

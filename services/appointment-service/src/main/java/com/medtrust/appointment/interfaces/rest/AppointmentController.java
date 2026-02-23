@@ -11,14 +11,24 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
+import com.medtrust.appointment.infrastructure.messaging.rabbitmq.NotificationProducer;
+
 @RestController
 @RequestMapping("/api/appointments")
 public class AppointmentController {
 
     private final AppointmentService appointmentService;
+    private final NotificationProducer notificationProducer;
 
-    public AppointmentController(AppointmentService appointmentService) {
+    public AppointmentController(AppointmentService appointmentService, NotificationProducer notificationProducer) {
         this.appointmentService = appointmentService;
+        this.notificationProducer = notificationProducer;
+    }
+
+    @PostMapping("/test-sms")
+    public ResponseEntity<Map<String, Object>> testSms(@RequestParam String phone, @RequestParam String msg) {
+        notificationProducer.sendSmsNotification(phone, msg);
+        return ResponseEntity.ok(Map.of("success", true, "message", "SMS command sent to RabbitMQ"));
     }
 
     @PostMapping

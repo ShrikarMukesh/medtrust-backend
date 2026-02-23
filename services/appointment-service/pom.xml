@@ -62,6 +62,12 @@
             <artifactId>spring-kafka</artifactId>
         </dependency>
 
+        <!-- RabbitMQ / AMQP -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-amqp</artifactId>
+        </dependency>
+
         <!-- Actuator -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
