@@ -1,0 +1,61 @@
+# ── Clinical Service Helm Values ──
+
+replicaCount: 2
+
+image:
+  repository: medtrust/clinical-service
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: NodePort
+  port: 8080
+  targetPort: 8080
+  nodePort: 30001
+
+# ── Resource Limits ──
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+  limits:
+    cpu: 500m
+    memory: 1Gi
+
+# ── Environment Variables ──
+env:
+  DB_HOST: medtrust-postgres
+  DB_PORT: "5432"
+  DB_DATABASE: clinical_service
+  DB_USERNAME: medtrust
+  KAFKA_BROKER: medtrust-kafka:9092
+
+# ── Secrets (base64 encoded in secret.yaml) ──
+secrets:
+  DB_PASSWORD: changeme
+
+# ── Health Checks ──
+livenessProbe:
+  httpGet:
+    path: /actuator/health
+    port: 8080
+  initialDelaySeconds: 60
+  periodSeconds: 15
+  timeoutSeconds: 5
+  failureThreshold: 5
+
+readinessProbe:
+  httpGet:
+    path: /actuator/health
+    port: 8080
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+# ── Node Affinity ──
+nodeSelector:
+  workload: services
+
+# ── Pod Anti-Affinity ──
+podAntiAffinity: true

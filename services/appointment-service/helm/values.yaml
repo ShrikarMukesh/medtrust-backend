@@ -1,0 +1,65 @@
+# ── Appointment Service Helm Values ──
+
+replicaCount: 2
+
+image:
+  repository: medtrust/appointment-service
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: NodePort
+  port: 8082
+  targetPort: 8082
+  nodePort: 30002
+
+# ── Resource Limits ──
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+  limits:
+    cpu: 500m
+    memory: 1Gi
+
+# ── Environment Variables ──
+env:
+  DB_HOST: medtrust-postgres
+  DB_PORT: "5432"
+  DB_DATABASE: appointment_service
+  DB_USERNAME: medtrust
+  KAFKA_BROKER: medtrust-kafka:9092
+  RABBITMQ_HOST: medtrust-rabbitmq
+  RABBITMQ_PORT: "5672"
+  RABBITMQ_USERNAME: medtrust
+
+# ── Secrets (base64 encoded in secret.yaml) ──
+secrets:
+  DB_PASSWORD: changeme
+  RABBITMQ_PASSWORD: changeme
+
+# ── Health Checks ──
+livenessProbe:
+  httpGet:
+    path: /actuator/health
+    port: 8082
+  initialDelaySeconds: 60
+  periodSeconds: 15
+  timeoutSeconds: 5
+  failureThreshold: 5
+
+readinessProbe:
+  httpGet:
+    path: /actuator/health
+    port: 8082
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+# ── Node Affinity ──
+nodeSelector:
+  workload: services
+
+# ── Pod Anti-Affinity ──
+podAntiAffinity: true

@@ -1,0 +1,128 @@
+# ── PostgreSQL for MedTrust ──
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: medtrust-postgres-secret
+  namespace: medtrust
+type: Opaque
+data:
+  # "medtrust" base64 encoded
+  POSTGRES_USER: bWVkdHJ1c3Q=
+  # "changeme" base64 encoded
+  POSTGRES_PASSWORD: Y2hhbmdlbWU=
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: medtrust-postgres-init
+  namespace: medtrust
+data:
+  init.sql: |
+    CREATE DATABASE clinical_service;
+    CREATE DATABASE appointment_service;
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: medtrust-postgres-pvc
+  namespace: medtrust
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: medtrust-postgres
+  namespace: medtrust
+  labels:
+    app: medtrust-postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: medtrust-postgres
+  template:
+    metadata:
+      labels:
+        app: medtrust-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: medtrust-postgres-secret
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: medtrust-postgres-secret
+                  key: POSTGRES_PASSWORD
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+            - name: init-scripts
+              mountPath: /docker-entrypoint-initdb.d
+          readinessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - medtrust
+                - -d
+                - postgres
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - medtrust
+                - -d
+                - postgres
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+      volumes:
+        - name: postgres-data
+          persistentVolumeClaim:
+            claimName: medtrust-postgres-pvc
+        - name: init-scripts
+          configMap:
+            name: medtrust-postgres-init
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: medtrust-postgres
+  namespace: medtrust
+  labels:
+    app: medtrust-postgres
+spec:
+  type: ClusterIP
+  ports:
+    - port: 5432
+      targetPort: 5432
+      protocol: TCP
+  selector:
+    app: medtrust-postgres
