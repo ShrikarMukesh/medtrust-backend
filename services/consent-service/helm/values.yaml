@@ -1,0 +1,55 @@
+# ── Consent Service Helm Values ──
+
+replicaCount: 2
+
+image:
+  repository: medtrust/consent-service
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: NodePort
+  port: 8084
+  targetPort: 8084
+  nodePort: 30005
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+  limits:
+    cpu: 500m
+    memory: 1Gi
+
+env:
+  DB_HOST: medtrust-postgres
+  DB_PORT: "5432"
+  DB_DATABASE: consent_service
+  DB_USERNAME: medtrust
+  KAFKA_BROKER: medtrust-kafka:9092
+
+secrets:
+  DB_PASSWORD: changeme
+
+livenessProbe:
+  httpGet:
+    path: /actuator/health
+    port: 8084
+  initialDelaySeconds: 60
+  periodSeconds: 15
+  timeoutSeconds: 5
+  failureThreshold: 5
+
+readinessProbe:
+  httpGet:
+    path: /actuator/health
+    port: 8084
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+nodeSelector:
+  workload: services
+
+podAntiAffinity: true
