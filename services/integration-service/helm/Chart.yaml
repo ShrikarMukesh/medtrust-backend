@@ -1,0 +1,6 @@
+apiVersion: v2
+name: integration-service
+description: MedTrust Integration Service — HL7 FHIR R4 Interoperability
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
