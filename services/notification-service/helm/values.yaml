@@ -1,0 +1,48 @@
+replicaCount: 2
+image:
+  repository: medtrust/notification-service
+  tag: latest
+  pullPolicy: IfNotPresent
+service:
+  type: NodePort
+  port: 8086
+  targetPort: 8086
+  nodePort: 30007
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+  limits:
+    cpu: 500m
+    memory: 1Gi
+env:
+  DB_HOST: medtrust-postgres
+  DB_PORT: "5432"
+  DB_DATABASE: notification_service
+  DB_USERNAME: medtrust
+  KAFKA_BROKER: medtrust-kafka:9092
+  WHATSAPP_ENABLED: "false"
+  SMS_ENABLED: "false"
+  EMAIL_ENABLED: "false"
+secrets:
+  DB_PASSWORD: changeme
+  WHATSAPP_ACCESS_TOKEN: ""
+  TWILIO_AUTH_TOKEN: ""
+  SMTP_PASSWORD: ""
+livenessProbe:
+  httpGet:
+    path: /actuator/health
+    port: 8086
+  initialDelaySeconds: 60
+  periodSeconds: 15
+  failureThreshold: 5
+readinessProbe:
+  httpGet:
+    path: /actuator/health
+    port: 8086
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  failureThreshold: 3
+nodeSelector:
+  workload: services
+podAntiAffinity: true

@@ -4,3 +4,4 @@ CREATE DATABASE patient_service;
 CREATE DATABASE auth_service;
 CREATE DATABASE consent_service;
 CREATE DATABASE audit_service;
+CREATE DATABASE notification_service;
