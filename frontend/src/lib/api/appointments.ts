@@ -1,0 +1,73 @@
+import { apiFetch, SERVICE_URLS, isMockMode } from '../api';
+import { mockAppointments } from '../mock-data';
+
+export interface AppointmentResponse {
+  id: string; patientId: string; providerId: string; startTime: string; endTime: string;
+  status: string; type: string; reason: string; createdAt: string; updatedAt: string;
+}
+
+export interface CreateAppointmentData {
+  patientId: string; providerId: string; startTime: string; endTime: string; type: string; reason?: string;
+}
+
+const BASE = SERVICE_URLS.appointment;
+
+export async function getAppointments(): Promise<AppointmentResponse[]> {
+  if (isMockMode()) return mockAppointments;
+  return apiFetch<AppointmentResponse[]>(BASE, '/api/appointments');
+}
+
+export async function getAppointment(id: string): Promise<AppointmentResponse> {
+  if (isMockMode()) {
+    const a = mockAppointments.find(a => a.id === id);
+    if (!a) throw new Error('Appointment not found');
+    return a;
+  }
+  return apiFetch<AppointmentResponse>(BASE, `/api/appointments/${id}`);
+}
+
+export async function createAppointment(data: CreateAppointmentData): Promise<AppointmentResponse> {
+  if (isMockMode()) return { ...mockAppointments[0], ...data, id: 'a-new', status: 'SCHEDULED', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+  return apiFetch<AppointmentResponse>(BASE, '/api/appointments', {
+    method: 'POST', body: JSON.stringify(data),
+  });
+}
+
+export async function cancelAppointment(id: string, reason?: string): Promise<AppointmentResponse> {
+  if (isMockMode()) {
+    const a = mockAppointments.find(a => a.id === id);
+    if (!a) throw new Error('Not found');
+    return { ...a, status: 'CANCELLED' };
+  }
+  const query = reason ? `?reason=${encodeURIComponent(reason)}` : '';
+  return apiFetch<AppointmentResponse>(BASE, `/api/appointments/${id}/cancel${query}`, { method: 'PUT' });
+}
+
+export async function confirmAppointment(id: string): Promise<AppointmentResponse> {
+  if (isMockMode()) {
+    const a = mockAppointments.find(a => a.id === id);
+    if (!a) throw new Error('Not found');
+    return { ...a, status: 'CONFIRMED' };
+  }
+  return apiFetch<AppointmentResponse>(BASE, `/api/appointments/${id}/confirm`, { method: 'PUT' });
+}
+
+export async function completeAppointment(id: string): Promise<AppointmentResponse> {
+  if (isMockMode()) {
+    const a = mockAppointments.find(a => a.id === id);
+    if (!a) throw new Error('Not found');
+    return { ...a, status: 'COMPLETED' };
+  }
+  return apiFetch<AppointmentResponse>(BASE, `/api/appointments/${id}/complete`, { method: 'PUT' });
+}
+
+export async function rescheduleAppointment(id: string, data: { newStartTime: string; newEndTime: string }): Promise<AppointmentResponse> {
+  if (isMockMode()) {
+    const a = mockAppointments.find(a => a.id === id);
+    if (!a) throw new Error('Not found');
+    return { ...a, startTime: data.newStartTime, endTime: data.newEndTime, status: 'SCHEDULED' };
+  }
+  return apiFetch<AppointmentResponse>(BASE, `/api/appointments/${id}/reschedule`, {
+    method: 'PUT', body: JSON.stringify(data),
+  });
+}

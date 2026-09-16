@@ -1,0 +1,59 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.sm {
+  padding: 2px var(--space-2);
+  font-size: 0.625rem;
+}
+
+.md {
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-xs);
+}
+
+/* Dot indicator */
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* Variants */
+.default {
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+}
+
+.success, .confirmed, .active {
+  background: var(--success-muted);
+  color: var(--success);
+}
+
+.warning, .no_show {
+  background: var(--warning-muted);
+  color: var(--warning);
+}
+
+.danger, .cancelled, .inactive {
+  background: var(--danger-muted);
+  color: var(--danger);
+}
+
+.info, .scheduled {
+  background: var(--info-muted);
+  color: var(--info);
+}
+
+.completed {
+  background: rgba(100, 116, 139, 0.15);
+  color: var(--text-muted);
+}
