@@ -45,7 +45,7 @@ export default function PatientsPage() {
     )},
     { key: 'dateOfBirth', header: 'Date of Birth', width: '130px' },
     { key: 'gender', header: 'Gender', width: '100px' },
-    { key: 'phone', header: 'Phone', render: (p: PatientResponse) => p.contactInfo.phone },
+    { key: 'phone', header: 'Phone', render: (p: PatientResponse) => p.contactInfo?.phone || '—' },
     { key: 'active', header: 'Status', width: '100px', render: (p: PatientResponse) => (
       <Badge variant={statusVariant(p.active ? 'ACTIVE' : 'INACTIVE')} size="sm" dot>
         {p.active ? 'Active' : 'Inactive'}
@@ -53,7 +53,7 @@ export default function PatientsPage() {
     )},
     { key: 'allergies', header: 'Allergies', render: (p: PatientResponse) => (
       <span className={styles.allergies}>
-        {p.allergies.length > 0 ? p.allergies.join(', ') : '—'}
+        {p.allergies && p.allergies.length > 0 ? p.allergies.join(', ') : '—'}
       </span>
     )},
   ];

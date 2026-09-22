@@ -9,6 +9,8 @@ export const SERVICE_URLS = {
   consent: process.env.NEXT_PUBLIC_CONSENT_SERVICE_URL || 'http://localhost:8084',
   audit: process.env.NEXT_PUBLIC_AUDIT_SERVICE_URL || 'http://localhost:8085',
   clinical: process.env.NEXT_PUBLIC_CLINICAL_SERVICE_URL || 'http://localhost:8080',
+  notification: process.env.NEXT_PUBLIC_NOTIFICATION_SERVICE_URL || 'http://localhost:8086',
+  integration: process.env.NEXT_PUBLIC_INTEGRATION_SERVICE_URL || 'http://localhost:8087',
 } as const;
 
 export function isMockMode(): boolean {

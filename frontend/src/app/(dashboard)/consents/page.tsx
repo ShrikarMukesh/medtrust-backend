@@ -42,8 +42,8 @@ export default function ConsentsPage() {
     { key: 'status', header: 'Status', width: '110px', render: (c: ConsentResponse) => (
       <Badge variant={statusVariant(c.status)} size="sm" dot>{c.status}</Badge>
     )},
-    { key: 'grantedAt', header: 'Granted At', render: (c: ConsentResponse) => format(new Date(c.grantedAt), 'MMM d, yyyy') },
-    { key: 'expiresAt', header: 'Expires At', render: (c: ConsentResponse) => format(new Date(c.expiresAt), 'MMM d, yyyy') },
+    { key: 'grantedAt', header: 'Granted At', render: (c: ConsentResponse) => c.grantedAt ? format(new Date(c.grantedAt), 'MMM d, yyyy') : '—' },
+    { key: 'expiresAt', header: 'Expires At', render: (c: ConsentResponse) => c.expiresAt ? format(new Date(c.expiresAt), 'MMM d, yyyy') : '—' },
     { key: 'actions', header: '', width: '100px', render: (c: ConsentResponse) => (
       c.status === 'GRANTED' ? (
         <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); handleRevoke(c.id); }} icon={<ShieldOff size={14} />}>

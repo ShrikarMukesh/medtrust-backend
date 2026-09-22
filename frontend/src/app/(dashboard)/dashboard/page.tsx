@@ -9,6 +9,10 @@ import { Badge, statusVariant } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Users, CalendarDays, Stethoscope, ScrollText, Plus } from 'lucide-react';
 import { mockPatients, mockAppointments, mockEncounters, mockAuditEntries, getPatientName, getProviderName } from '@/lib/mock-data';
+import { getPatients, PatientResponse } from '@/lib/api/patients';
+import { getAppointments, AppointmentResponse } from '@/lib/api/appointments';
+import { getEncounters, EncounterResponse } from '@/lib/api/clinical';
+import { getAuditEntries, AuditEntryResponse } from '@/lib/api/audit';
 import { format } from 'date-fns';
 import Link from 'next/link';
 import {
@@ -25,25 +29,38 @@ const statusColors: Record<string, string> = {
 
 export default function DashboardPage() {
   const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const [patients, setPatients] = useState<PatientResponse[]>(mockPatients);
+  const [appointments, setAppointments] = useState<AppointmentResponse[]>(mockAppointments);
+  const [encounters, setEncounters] = useState<EncounterResponse[]>(mockEncounters);
+  const [auditEntries, setAuditEntries] = useState<AuditEntryResponse[]>(mockAuditEntries);
 
-  const todayAppts = mockAppointments.filter(a =>
-    a.startTime.startsWith(new Date().toISOString().slice(0, 10))
+  useEffect(() => {
+    setMounted(true);
+    Promise.allSettled([
+      getPatients().then(setPatients).catch(() => {}),
+      getAppointments().then(setAppointments).catch(() => {}),
+      getEncounters().then(setEncounters).catch(() => {}),
+      getAuditEntries().then(setAuditEntries).catch(() => {}),
+    ]);
+  }, []);
+
+  const todayAppts = appointments.filter(a =>
+    a.startTime && a.startTime.startsWith(new Date().toISOString().slice(0, 10))
   ).length;
 
   const chartData = Object.entries(
-    mockAppointments.reduce<Record<string, number>>((acc, a) => {
+    appointments.reduce<Record<string, number>>((acc, a) => {
       acc[a.status] = (acc[a.status] || 0) + 1;
       return acc;
     }, {})
   ).map(([status, count]) => ({ status, count }));
 
-  const recentAppointments = [...mockAppointments]
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+  const recentAppointments = [...appointments]
+    .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
     .slice(0, 5);
 
-  const recentAudit = [...mockAuditEntries]
-    .sort((a, b) => new Date(b.eventTimestamp).getTime() - new Date(a.eventTimestamp).getTime())
+  const recentAudit = [...auditEntries]
+    .sort((a, b) => new Date(b.eventTimestamp || 0).getTime() - new Date(a.eventTimestamp || 0).getTime())
     .slice(0, 6);
 
   return (
@@ -55,26 +72,26 @@ export default function DashboardPage() {
           <StatCard
             icon={<Users size={22} />}
             label="Total Patients"
-            value={mockPatients.length}
+            value={patients.length}
             trend={{ value: '+3 this month', positive: true }}
             color="accent"
           />
           <StatCard
             icon={<CalendarDays size={22} />}
             label="Today's Appointments"
-            value={todayAppts || mockAppointments.filter(a => a.status === 'SCHEDULED').length}
+            value={todayAppts || appointments.filter(a => a.status === 'SCHEDULED').length}
             color="info"
           />
           <StatCard
             icon={<Stethoscope size={22} />}
             label="Active Encounters"
-            value={mockEncounters.filter(e => e.status !== 'DISCHARGED').length}
+            value={encounters.filter(e => e.status !== 'DISCHARGED').length}
             color="success"
           />
           <StatCard
             icon={<ScrollText size={22} />}
             label="Audit Events (24h)"
-            value={mockAuditEntries.length}
+            value={auditEntries.length}
             color="warning"
           />
         </div>
