@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import styles from './login.module.css';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
-import { login } from '@/lib/api/auth';
+import { login, ApiError } from '@/lib/api/auth';
+import { isMockMode } from '@/lib/api';
 import { Activity, Shield } from 'lucide-react';
 
 export default function LoginPage() {
@@ -21,10 +22,23 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      await login({ email: email || 'admin@medtrust.com', password: password || 'password' });
+      await login({
+        email: email || 'admin@medtrust.com',
+        password: password || 'password123',
+      });
       router.push('/dashboard');
-    } catch {
-      setError('Invalid credentials. Please try again.');
+    } catch (err) {
+      if (err instanceof ApiError) {
+        // Try to parse the JSON error body from the backend
+        try {
+          const parsed = JSON.parse(err.message);
+          setError(parsed.message || 'Authentication failed');
+        } catch {
+          setError(err.message || 'Authentication failed');
+        }
+      } else {
+        setError('Unable to connect to server. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -72,10 +86,12 @@ export default function LoginPage() {
           <span>HIPAA Compliant • SOC 2 Certified</span>
         </div>
 
-        {/* Mock mode notice */}
-        <div className={styles.mockNotice}>
-          <span>Mock Mode — any credentials will work</span>
-        </div>
+        {/* Mock mode notice — only shown in mock mode */}
+        {isMockMode() && (
+          <div className={styles.mockNotice}>
+            <span>Mock Mode — any credentials will work</span>
+          </div>
+        )}
       </div>
     </div>
   );

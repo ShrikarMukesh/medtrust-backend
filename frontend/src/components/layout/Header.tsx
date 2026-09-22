@@ -1,8 +1,10 @@
 'use client';
 
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import styles from './Header.module.css';
 import { Bell, Search, LogOut, User } from 'lucide-react';
+import { logout } from '@/lib/api/auth';
 
 interface HeaderProps {
   title: string;
@@ -10,6 +12,13 @@ interface HeaderProps {
 }
 
 export function Header({ title, subtitle }: HeaderProps) {
+  const router = useRouter();
+
+  const handleLogout = () => {
+    logout();
+    router.push('/login');
+  };
+
   return (
     <header className={styles.header}>
       <div className={styles.left}>
@@ -41,7 +50,7 @@ export function Header({ title, subtitle }: HeaderProps) {
           <div className={styles.avatar}>
             <User size={16} />
           </div>
-          <button className={styles.iconBtn} aria-label="Logout">
+          <button className={styles.iconBtn} aria-label="Logout" onClick={handleLogout}>
             <LogOut size={18} />
           </button>
         </div>
@@ -49,3 +58,4 @@ export function Header({ title, subtitle }: HeaderProps) {
     </header>
   );
 }
+
