@@ -12,6 +12,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @Transactional
 public class AppointmentService {
@@ -72,6 +74,13 @@ public class AppointmentService {
         Appointment saved = appointmentRepository.save(appointment);
         publishDomainEvents(saved);
         return toResponse(saved);
+    }
+
+    @Transactional(readOnly = true)
+    public List<AppointmentResponse> getAll() {
+        return appointmentRepository.findAll().stream()
+                .map(this::toResponse)
+                .toList();
     }
 
     @Transactional(readOnly = true)

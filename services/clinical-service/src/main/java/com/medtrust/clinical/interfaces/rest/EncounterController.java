@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -27,6 +28,12 @@ public class EncounterController {
         EncounterResponse response = encounterService.create(request);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(Map.of("success", true, "data", response));
+    }
+
+    @GetMapping
+    public ResponseEntity<Map<String, Object>> getAll() {
+        List<EncounterResponse> response = encounterService.getAll();
+        return ResponseEntity.ok(Map.of("success", true, "data", response));
     }
 
     @GetMapping("/{id}")

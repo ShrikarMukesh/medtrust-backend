@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 import com.medtrust.appointment.infrastructure.messaging.rabbitmq.NotificationProducer;
@@ -36,6 +37,12 @@ public class AppointmentController {
         AppointmentResponse response = appointmentService.create(request);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(Map.of("success", true, "data", response));
+    }
+
+    @GetMapping
+    public ResponseEntity<Map<String, Object>> getAll() {
+        List<AppointmentResponse> response = appointmentService.getAll();
+        return ResponseEntity.ok(Map.of("success", true, "data", response));
     }
 
     @GetMapping("/{id}")
