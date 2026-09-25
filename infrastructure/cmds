@@ -1,0 +1,49 @@
+# ══════════════════════════════════════════════════════════════
+#  MedTrust – Quick Reference Commands
+# ══════════════════════════════════════════════════════════════
+
+# ── Enterprise Deployment ────────────────────────────────────
+./infrastructure/k8s/deploy-all.sh dev                # Deploy to DEV
+./infrastructure/k8s/deploy-all.sh qa                 # Deploy to QA
+./infrastructure/k8s/deploy-all.sh all                # Deploy to both
+./infrastructure/k8s/deploy-all.sh dev --skip-build   # Skip Docker builds
+./infrastructure/k8s/deploy-all.sh dev --infra-only   # Deploy only infra
+./infrastructure/k8s/deploy-all.sh dev --svc-only     # Deploy only services
+
+# ── Dashboard ────────────────────────────────────────────────
+./infrastructure/k8s/dashboard/setup-dashboard.sh start    # Quick start dashboard
+kubectl get secret admin-user-token -n kubernetes-dashboard -o jsonpath='{.data.token}' | base64 --decode && echo
+kubectl proxy --port=8001
+# Dashboard URL: http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/
+
+# ── View Resources per Environment ───────────────────────────
+kubectl get all -n medtrust-dev        # All resources in DEV
+kubectl get all -n medtrust-qa         # All resources in QA
+kubectl get pods -n medtrust-dev       # Pods in DEV
+kubectl get configmap -n medtrust-dev  # ConfigMaps in DEV
+kubectl get secrets -n medtrust-dev    # Secrets in DEV
+
+# ── Service Health Checks (DEV) ──────────────────────────────
+curl http://localhost:30001/actuator/health   # clinical-service
+curl http://localhost:30002/actuator/health   # appointment-service
+curl http://localhost:30003/actuator/health   # patient-service
+curl http://localhost:30004/actuator/health   # auth-service
+curl http://localhost:30005/actuator/health   # consent-service
+curl http://localhost:30006/actuator/health   # audit-service
+curl http://localhost:30007/actuator/health   # notification-service
+curl http://localhost:30008/actuator/health   # integration-service
+
+# ── Port Forward (alternative to NodePort) ───────────────────
+kubectl port-forward svc/clinical-service 8080:8080 -n medtrust-dev
+kubectl port-forward svc/appointment-service 8082:8082 -n medtrust-dev
+
+# ── Logs ─────────────────────────────────────────────────────
+kubectl logs -l app=clinical-service -n medtrust-dev --tail=50 -f
+kubectl logs -l app=appointment-service -n medtrust-dev --tail=50 -f
+
+# ── Restart a Service ────────────────────────────────────────
+kubectl rollout restart deployment/clinical-service -n medtrust-dev
+
+# ── Cluster Management ──────────────────────────────────────
+kind get clusters
+kind delete cluster --name medtrust-cluster
