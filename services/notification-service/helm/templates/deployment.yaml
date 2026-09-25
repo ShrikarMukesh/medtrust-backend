@@ -39,6 +39,7 @@ spec:
                 configMapKeyRef:
                   name: {{ include "notification-service.fullname" . }}-config
                   key: SPRING_PROFILES_ACTIVE
+            - { name: MANAGEMENT_HEALTH_MAIL_ENABLED, value: "false" }
             - { name: JAVA_OPTS, value: "-Xms256m -Xmx512m" }
           {{- with .Values.livenessProbe }}
           livenessProbe: {{- toYaml . | nindent 12 }}

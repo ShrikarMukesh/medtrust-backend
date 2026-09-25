@@ -47,3 +47,23 @@ kubectl rollout restart deployment/clinical-service -n medtrust-dev
 # ── Cluster Management ──────────────────────────────────────
 kind get clusters
 kind delete cluster --name medtrust-cluster
+
+
+------------------------------------------------
+curl http://localhost:30001/actuator/health   # clinical-service
+curl http://localhost:30002/actuator/health   # appointment-service
+curl http://localhost:30003/actuator/health   # patient-service
+curl http://localhost:30004/actuator/health   # auth-service
+curl http://localhost:30005/actuator/health   # consent-service
+curl http://localhost:30006/actuator/health   # audit-service
+curl http://localhost:30007/actuator/health   # notification-service
+curl http://localhost:30008/actuator/health   # integration-service
+
+
+
+kubectl get pods -n medtrust-dev -o wide
+kubectl get configmap,secret,svc -n medtrust-dev
+
+
+./infrastructure/k8s/deploy-all.sh dev    # Deploy to DEV
+./infrastructure/k8s/deploy-all.sh qa     # Deploy to QA

@@ -123,7 +123,12 @@ build_images() {
         local svc_dir="$ROOT_DIR/services/$svc"
         if [ -f "$svc_dir/Dockerfile" ]; then
             log "Building $svc..."
-            if docker build -t "medtrust/$svc:latest" "$svc_dir" >/dev/null 2>&1; then
+            # Compile JAR if not present
+            if ! ls "$svc_dir"/target/*.jar >/dev/null 2>&1; then
+                log "Packaging $svc with Maven..."
+                (cd "$svc_dir" && ./mvnw clean package -DskipTests -B -q)
+            fi
+            if docker build -t "medtrust/$svc:latest" "$svc_dir" >/dev/null; then
                 ok "$svc image built!"
                 ((built++))
             else
