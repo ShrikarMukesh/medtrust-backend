@@ -4,14 +4,74 @@ name: medtrust-cluster
 nodes:
   - role: control-plane
     extraPortMappings:
-      # API Gateway
+      # ── Dev Environment (30001–30008) ──────────────────────
+      # clinical-service (dev)
       - containerPort: 30001
         hostPort: 30001
         protocol: TCP
-      # Additional services you may want to expose
+      # appointment-service (dev)
       - containerPort: 30002
         hostPort: 30002
         protocol: TCP
+      # patient-service (dev)
+      - containerPort: 30003
+        hostPort: 30003
+        protocol: TCP
+      # auth-service (dev)
+      - containerPort: 30004
+        hostPort: 30004
+        protocol: TCP
+      # consent-service (dev)
+      - containerPort: 30005
+        hostPort: 30005
+        protocol: TCP
+      # audit-service (dev)
+      - containerPort: 30006
+        hostPort: 30006
+        protocol: TCP
+      # notification-service (dev)
+      - containerPort: 30007
+        hostPort: 30007
+        protocol: TCP
+      # integration-service (dev)
+      - containerPort: 30008
+        hostPort: 30008
+        protocol: TCP
+
+      # ── QA Environment (31001–31008) ───────────────────────
+      # clinical-service (qa)
+      - containerPort: 31001
+        hostPort: 31001
+        protocol: TCP
+      # appointment-service (qa)
+      - containerPort: 31002
+        hostPort: 31002
+        protocol: TCP
+      # patient-service (qa)
+      - containerPort: 31003
+        hostPort: 31003
+        protocol: TCP
+      # auth-service (qa)
+      - containerPort: 31004
+        hostPort: 31004
+        protocol: TCP
+      # consent-service (qa)
+      - containerPort: 31005
+        hostPort: 31005
+        protocol: TCP
+      # audit-service (qa)
+      - containerPort: 31006
+        hostPort: 31006
+        protocol: TCP
+      # notification-service (qa)
+      - containerPort: 31007
+        hostPort: 31007
+        protocol: TCP
+      # integration-service (qa)
+      - containerPort: 31008
+        hostPort: 31008
+        protocol: TCP
+
     kubeadmConfigPatches:
       - |
         kind: InitConfiguration

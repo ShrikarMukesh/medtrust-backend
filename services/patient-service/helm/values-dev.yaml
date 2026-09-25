@@ -1,0 +1,33 @@
+# ── Patient Service – DEV Values ──
+
+replicaCount: 1
+
+service:
+  type: NodePort
+  port: 8081
+  targetPort: 8081
+  nodePort: 30003
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 250m
+    memory: 512Mi
+
+env:
+  DB_HOST: medtrust-postgres
+  DB_PORT: "5432"
+  DB_DATABASE: patient_service
+  DB_USERNAME: medtrust
+  KAFKA_BROKER: medtrust-kafka:9092
+  SPRING_PROFILES_ACTIVE: dev
+
+secrets:
+  DB_PASSWORD: dev-changeme
+
+nodeSelector:
+  workload: services
+
+podAntiAffinity: false

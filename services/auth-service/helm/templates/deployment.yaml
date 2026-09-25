@@ -95,6 +95,11 @@ spec:
                 secretKeyRef:
                   name: {{ include "auth-service.fullname" . }}-secret
                   key: JWT_SECRET
+            - name: SPRING_PROFILES_ACTIVE
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "auth-service.fullname" . }}-config
+                  key: SPRING_PROFILES_ACTIVE
             - name: JAVA_OPTS
               value: "-Xms256m -Xmx512m"
           {{- with .Values.livenessProbe }}

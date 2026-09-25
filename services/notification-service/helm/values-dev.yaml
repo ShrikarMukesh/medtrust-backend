@@ -1,0 +1,39 @@
+# ── Notification Service – DEV Values ──
+
+replicaCount: 1
+
+service:
+  type: NodePort
+  port: 8086
+  targetPort: 8086
+  nodePort: 30007
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 250m
+    memory: 512Mi
+
+env:
+  DB_HOST: medtrust-postgres
+  DB_PORT: "5432"
+  DB_DATABASE: notification_service
+  DB_USERNAME: medtrust
+  KAFKA_BROKER: medtrust-kafka:9092
+  WHATSAPP_ENABLED: "false"
+  SMS_ENABLED: "false"
+  EMAIL_ENABLED: "false"
+  SPRING_PROFILES_ACTIVE: dev
+
+secrets:
+  DB_PASSWORD: dev-changeme
+  WHATSAPP_ACCESS_TOKEN: ""
+  TWILIO_AUTH_TOKEN: ""
+  SMTP_PASSWORD: ""
+
+nodeSelector:
+  workload: services
+
+podAntiAffinity: false

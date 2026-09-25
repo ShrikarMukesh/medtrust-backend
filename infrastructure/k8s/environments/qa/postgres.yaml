@@ -1,23 +1,29 @@
-# ── PostgreSQL for MedTrust ──
+# ── PostgreSQL for MedTrust (QA) ──
 ---
 apiVersion: v1
 kind: Secret
 metadata:
   name: medtrust-postgres-secret
-  namespace: medtrust
+  namespace: medtrust-qa
+  labels:
+    app: medtrust-postgres
+    environment: qa
 type: Opaque
 data:
   # "medtrust" base64 encoded
   POSTGRES_USER: bWVkdHJ1c3Q=
-  # "changeme" base64 encoded
-  POSTGRES_PASSWORD: Y2hhbmdlbWU=
+  # "qa-s3cur3-pwd" base64 encoded
+  POSTGRES_PASSWORD: cWEtczNjdXIzLXB3ZA==
 
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: medtrust-postgres-init
-  namespace: medtrust
+  namespace: medtrust-qa
+  labels:
+    app: medtrust-postgres
+    environment: qa
 data:
   init.sql: |
     CREATE DATABASE clinical_service;
@@ -34,22 +40,26 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: medtrust-postgres-pvc
-  namespace: medtrust
+  namespace: medtrust-qa
+  labels:
+    app: medtrust-postgres
+    environment: qa
 spec:
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 5Gi
+      storage: 10Gi
 
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: medtrust-postgres
-  namespace: medtrust
+  namespace: medtrust-qa
   labels:
     app: medtrust-postgres
+    environment: qa
 spec:
   replicas: 1
   selector:
@@ -59,6 +69,7 @@ spec:
     metadata:
       labels:
         app: medtrust-postgres
+        environment: qa
     spec:
       containers:
         - name: postgres
@@ -103,11 +114,11 @@ spec:
             periodSeconds: 10
           resources:
             requests:
-              cpu: 100m
-              memory: 256Mi
-            limits:
-              cpu: 500m
+              cpu: 200m
               memory: 512Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
       volumes:
         - name: postgres-data
           persistentVolumeClaim:
@@ -121,9 +132,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: medtrust-postgres
-  namespace: medtrust
+  namespace: medtrust-qa
   labels:
     app: medtrust-postgres
+    environment: qa
 spec:
   type: ClusterIP
   ports:

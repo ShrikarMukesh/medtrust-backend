@@ -122,6 +122,11 @@ spec:
                 secretKeyRef:
                   name: {{ include "appointment-service.fullname" . }}-secret
                   key: RABBITMQ_PASSWORD
+            - name: SPRING_PROFILES_ACTIVE
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "appointment-service.fullname" . }}-config
+                  key: SPRING_PROFILES_ACTIVE
             - name: JAVA_OPTS
               value: "-Xms256m -Xmx512m"
           {{- with .Values.livenessProbe }}

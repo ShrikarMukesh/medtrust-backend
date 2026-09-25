@@ -13,3 +13,4 @@ data:
   WHATSAPP_ENABLED: {{ .Values.env.WHATSAPP_ENABLED | quote }}
   SMS_ENABLED: {{ .Values.env.SMS_ENABLED | quote }}
   EMAIL_ENABLED: {{ .Values.env.EMAIL_ENABLED | quote }}
+  SPRING_PROFILES_ACTIVE: {{ .Values.env.SPRING_PROFILES_ACTIVE | default "default" | quote }}

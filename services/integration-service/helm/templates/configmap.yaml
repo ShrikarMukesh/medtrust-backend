@@ -10,3 +10,4 @@ data:
   DB_DATABASE: {{ .Values.env.DB_DATABASE | quote }}
   DB_USERNAME: {{ .Values.env.DB_USERNAME | quote }}
   KAFKA_BROKER: {{ .Values.env.KAFKA_BROKER | quote }}
+  SPRING_PROFILES_ACTIVE: {{ .Values.env.SPRING_PROFILES_ACTIVE | default "default" | quote }}

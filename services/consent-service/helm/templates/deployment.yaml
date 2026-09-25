@@ -88,6 +88,11 @@ spec:
                 secretKeyRef:
                   name: {{ include "consent-service.fullname" . }}-secret
                   key: DB_PASSWORD
+            - name: SPRING_PROFILES_ACTIVE
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "consent-service.fullname" . }}-config
+                  key: SPRING_PROFILES_ACTIVE
             - name: JAVA_OPTS
               value: "-Xms256m -Xmx512m"
           {{- with .Values.livenessProbe }}

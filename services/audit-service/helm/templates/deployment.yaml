@@ -35,6 +35,11 @@ spec:
             - { name: DB_USERNAME, valueFrom: { configMapKeyRef: { name: "{{ include "audit-service.fullname" . }}-config", key: DB_USERNAME } } }
             - { name: KAFKA_BROKER, valueFrom: { configMapKeyRef: { name: "{{ include "audit-service.fullname" . }}-config", key: KAFKA_BROKER } } }
             - { name: DB_PASSWORD, valueFrom: { secretKeyRef: { name: "{{ include "audit-service.fullname" . }}-secret", key: DB_PASSWORD } } }
+            - name: SPRING_PROFILES_ACTIVE
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "audit-service.fullname" . }}-config
+                  key: SPRING_PROFILES_ACTIVE
             - { name: JAVA_OPTS, value: "-Xms256m -Xmx512m" }
           {{- with .Values.livenessProbe }}
           livenessProbe: {{- toYaml . | nindent 12 }}

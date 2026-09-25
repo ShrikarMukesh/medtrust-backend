@@ -1,0 +1,34 @@
+# ── Auth Service – QA Values ──
+
+replicaCount: 2
+
+service:
+  type: NodePort
+  port: 8083
+  targetPort: 8083
+  nodePort: 31004
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+  limits:
+    cpu: 500m
+    memory: 1Gi
+
+env:
+  DB_HOST: medtrust-postgres
+  DB_PORT: "5432"
+  DB_DATABASE: auth_service
+  DB_USERNAME: medtrust
+  KAFKA_BROKER: medtrust-kafka:9092
+  SPRING_PROFILES_ACTIVE: qa
+
+secrets:
+  DB_PASSWORD: qa-s3cur3-pwd
+  JWT_SECRET: qa-medtrust-jwt-secret-key-that-is-at-least-256-bits-long-for-hs256-qa
+
+nodeSelector:
+  workload: services
+
+podAntiAffinity: true

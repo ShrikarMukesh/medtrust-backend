@@ -1,0 +1,37 @@
+# ── Appointment Service – DEV Values ──
+
+replicaCount: 1
+
+service:
+  type: NodePort
+  port: 8082
+  targetPort: 8082
+  nodePort: 30002
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 250m
+    memory: 512Mi
+
+env:
+  DB_HOST: medtrust-postgres
+  DB_PORT: "5432"
+  DB_DATABASE: appointment_service
+  DB_USERNAME: medtrust
+  KAFKA_BROKER: medtrust-kafka:9092
+  RABBITMQ_HOST: medtrust-rabbitmq
+  RABBITMQ_PORT: "5672"
+  RABBITMQ_USERNAME: medtrust
+  SPRING_PROFILES_ACTIVE: dev
+
+secrets:
+  DB_PASSWORD: dev-changeme
+  RABBITMQ_PASSWORD: dev-changeme
+
+nodeSelector:
+  workload: services
+
+podAntiAffinity: false

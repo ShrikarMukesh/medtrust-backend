@@ -14,3 +14,4 @@ data:
   RABBITMQ_HOST: {{ .Values.env.RABBITMQ_HOST | quote }}
   RABBITMQ_PORT: {{ .Values.env.RABBITMQ_PORT | quote }}
   RABBITMQ_USERNAME: {{ .Values.env.RABBITMQ_USERNAME | quote }}
+  SPRING_PROFILES_ACTIVE: {{ .Values.env.SPRING_PROFILES_ACTIVE | default "default" | quote }}

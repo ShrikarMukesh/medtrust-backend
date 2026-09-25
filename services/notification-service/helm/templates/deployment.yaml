@@ -34,6 +34,11 @@ spec:
             - { name: DB_PASSWORD, valueFrom: { secretKeyRef: { name: "{{ include "notification-service.fullname" . }}-secret", key: DB_PASSWORD } } }
             - { name: WHATSAPP_ACCESS_TOKEN, valueFrom: { secretKeyRef: { name: "{{ include "notification-service.fullname" . }}-secret", key: WHATSAPP_ACCESS_TOKEN } } }
             - { name: TWILIO_AUTH_TOKEN, valueFrom: { secretKeyRef: { name: "{{ include "notification-service.fullname" . }}-secret", key: TWILIO_AUTH_TOKEN } } }
+            - name: SPRING_PROFILES_ACTIVE
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "notification-service.fullname" . }}-config
+                  key: SPRING_PROFILES_ACTIVE
             - { name: JAVA_OPTS, value: "-Xms256m -Xmx512m" }
           {{- with .Values.livenessProbe }}
           livenessProbe: {{- toYaml . | nindent 12 }}

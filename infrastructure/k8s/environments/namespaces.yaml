@@ -1,0 +1,18 @@
+# ── MedTrust Environment Namespaces ──
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: medtrust-dev
+  labels:
+    app.kubernetes.io/part-of: medtrust
+    environment: dev
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: medtrust-qa
+  labels:
+    app.kubernetes.io/part-of: medtrust
+    environment: qa

@@ -1,0 +1,39 @@
+# ── Notification Service – QA Values ──
+
+replicaCount: 2
+
+service:
+  type: NodePort
+  port: 8086
+  targetPort: 8086
+  nodePort: 31007
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+  limits:
+    cpu: 500m
+    memory: 1Gi
+
+env:
+  DB_HOST: medtrust-postgres
+  DB_PORT: "5432"
+  DB_DATABASE: notification_service
+  DB_USERNAME: medtrust
+  KAFKA_BROKER: medtrust-kafka:9092
+  WHATSAPP_ENABLED: "false"
+  SMS_ENABLED: "false"
+  EMAIL_ENABLED: "true"
+  SPRING_PROFILES_ACTIVE: qa
+
+secrets:
+  DB_PASSWORD: qa-s3cur3-pwd
+  WHATSAPP_ACCESS_TOKEN: ""
+  TWILIO_AUTH_TOKEN: ""
+  SMTP_PASSWORD: ""
+
+nodeSelector:
+  workload: services
+
+podAntiAffinity: true
