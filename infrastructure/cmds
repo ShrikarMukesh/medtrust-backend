@@ -44,9 +44,34 @@ kubectl logs -l app=appointment-service -n medtrust-dev --tail=50 -f
 # ── Restart a Service ────────────────────────────────────────
 kubectl rollout restart deployment/clinical-service -n medtrust-dev
 
+# ── Cluster & Services On-Demand Control ────────────────────
+./infrastructure/k8s/cluster.sh stop                  # Stop Kind cluster (0 RAM/CPU, no auto-start)
+./infrastructure/k8s/cluster.sh start                 # Start Kind cluster on-demand
+./infrastructure/k8s/cluster.sh status                # View cluster status
+./infrastructure/k8s/cluster.sh disable-autostart     # Ensure Docker won't auto-start cluster
+
+# Scale services on-demand (keep DB/Kafka/RabbitMQ running):
+./infrastructure/k8s/cluster.sh stop-services dev     # Scale down all microservices to 0 replicas
+./infrastructure/k8s/cluster.sh start-services dev    # Scale up all microservices to 1 replica
+./infrastructure/k8s/cluster.sh start-svc appointment-service dev  # Start only 1 service
+./infrastructure/k8s/cluster.sh stop-svc appointment-service dev   # Stop only 1 service
+
 # ── Cluster Management ──────────────────────────────────────
 kind get clusters
 kind delete cluster --name medtrust-cluster
+
+# ── Memory (RAM) & CPU Inspection ───────────────────────────
+docker stats                                          # Live RAM & CPU used by Kind cluster nodes
+docker stats --no-stream                              # Snapshot of RAM & CPU usage
+free -h                                               # Overall laptop RAM usage (Total, Used, Free)
+
+# ── Storage (Disk Space) Inspection ─────────────────────────
+docker system df                                      # Summary of Docker disk space (Images, Containers, Volumes)
+docker system df -v                                   # Detailed breakdown of Docker disk space
+docker images | grep -E "medtrust|kindest"            # Disk space of MedTrust & Kind Docker images
+docker ps -a --filter "name=medtrust-cluster" -s      # Disk space consumed by Kind container layers
+kubectl get pvc -A                                    # Kubernetes Persistent Volumes (Postgres storage)
+df -h /                                               # Total free disk space remaining on laptop hard drive
 
 
 ------------------------------------------------
@@ -67,3 +92,77 @@ kubectl get configmap,secret,svc -n medtrust-dev
 
 ./infrastructure/k8s/deploy-all.sh dev    # Deploy to DEV
 ./infrastructure/k8s/deploy-all.sh qa     # Deploy to QA
+
+
+# ══════════════════════════════════════════════════════════════
+#  Infrastructure Interaction (Port-Forward + Clients)
+# ══════════════════════════════════════════════════════════════
+
+# ── PostgreSQL ───────────────────────────────────────────────
+# 1. Port-forward (run in a separate terminal, keep it open)
+kubectl port-forward svc/medtrust-postgres 5432:5432 -n medtrust-dev
+
+# 2. Connect with psql (requires postgresql-client installed)
+psql -h localhost -p 5432 -U medtrust -d medtrust
+#    Password: medtrust  (check secret: kubectl get secret medtrust-postgres-secret -n medtrust-dev -o jsonpath='{.data.POSTGRES_PASSWORD}' | base64 -d)
+
+# 3. Useful psql queries
+#    \l           – list all databases
+#    \c <db>      – connect to a database
+#    \dt          – list tables in current schema
+#    \d <table>   – describe a table
+#    SELECT * FROM appointments LIMIT 10;
+
+# 4. One-liner: run a query without interactive shell
+kubectl exec -n medtrust-dev deployment/medtrust-postgres -- \
+  psql -U medtrust -d medtrust -c "SELECT * FROM appointments LIMIT 5;"
+
+
+# ── Kafka ─────────────────────────────────────────────────────
+# 1. Port-forward
+kubectl port-forward svc/medtrust-kafka 9092:9092 -n medtrust-dev
+
+# 2. List topics (exec directly into pod — no local client needed)
+kubectl exec -n medtrust-dev deploy/medtrust-kafka -- \
+  kafka-topics.sh --bootstrap-server localhost:9092 --list
+
+# 3. Describe a topic
+kubectl exec -n medtrust-dev deploy/medtrust-kafka -- \
+  kafka-topics.sh --bootstrap-server localhost:9092 --describe --topic appointment-events
+
+# 4. Consume messages from a topic (live tail)
+kubectl exec -it -n medtrust-dev deploy/medtrust-kafka -- \
+  kafka-console-consumer.sh --bootstrap-server localhost:9092 \
+  --topic appointment-events --from-beginning
+
+# 5. Produce a test message
+kubectl exec -it -n medtrust-dev deploy/medtrust-kafka -- \
+  kafka-console-producer.sh --bootstrap-server localhost:9092 \
+  --topic appointment-events
+
+# 6. Check consumer group lag
+kubectl exec -n medtrust-dev deploy/medtrust-kafka -- \
+  kafka-consumer-groups.sh --bootstrap-server localhost:9092 --list
+kubectl exec -n medtrust-dev deploy/medtrust-kafka -- \
+  kafka-consumer-groups.sh --bootstrap-server localhost:9092 \
+  --describe --group medtrust-appointment-group
+
+
+# ── RabbitMQ ──────────────────────────────────────────────────
+# 1. Port-forward management UI (port 15672) + AMQP (port 5672)
+kubectl port-forward svc/medtrust-rabbitmq 15672:15672 5672:5672 -n medtrust-dev
+
+# 2. Open Management UI in browser:
+#    http://localhost:15672
+#    Default credentials: guest / guest
+#    (or check secret: kubectl get secret medtrust-rabbitmq-secret -n medtrust-dev -o jsonpath='{.data.RABBITMQ_DEFAULT_PASS}' | base64 -d)
+
+# 3. rabbitmqctl via exec (no port-forward needed)
+kubectl exec -n medtrust-dev deploy/medtrust-rabbitmq -- rabbitmqctl list_queues
+kubectl exec -n medtrust-dev deploy/medtrust-rabbitmq -- rabbitmqctl list_exchanges
+kubectl exec -n medtrust-dev deploy/medtrust-rabbitmq -- rabbitmqctl list_bindings
+kubectl exec -n medtrust-dev deploy/medtrust-rabbitmq -- rabbitmqctl list_connections
+kubectl exec -n medtrust-dev deploy/medtrust-rabbitmq -- rabbitmqctl status
+
+# 4. Purge a queue (clear all unprocessed messages)
+kubectl exec -n medtrust-dev deploy/medtrust-rabbitmq -- rabbitmqctl purge_queue sms.queue

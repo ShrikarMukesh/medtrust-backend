@@ -100,7 +100,8 @@ ensure_cluster() {
         kind create cluster \
             --config "$SCRIPT_DIR/kind-config.yaml" \
             --image "$KIND_IMAGE"
-        ok "Cluster created!"
+        docker update --restart=no $(docker ps -a --filter "name=$CLUSTER_NAME" -q) >/dev/null 2>&1 || true
+        ok "Cluster created (Docker auto-start disabled)!"
     fi
 
     kubectl cluster-info --context "kind-$CLUSTER_NAME" 2>/dev/null || true
