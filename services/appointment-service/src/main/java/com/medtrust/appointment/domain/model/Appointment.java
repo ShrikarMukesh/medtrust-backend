@@ -7,7 +7,6 @@ import com.medtrust.appointment.domain.event.DomainEvent;
 
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 

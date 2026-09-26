@@ -6,10 +6,12 @@ spring:
         name: appointment-service
 
     datasource:
-        url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_DATABASE:appointment_service}
+        url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_DATABASE:medtrust}
         username: ${DB_USERNAME:medtrust}
         password: ${DB_PASSWORD:changeme}
         driver-class-name: org.postgresql.Driver
+        hikari:
+            schema: appointment
 
     jpa:
         hibernate:
@@ -20,11 +22,14 @@ spring:
             hibernate:
                 format_sql: true
                 dialect: org.hibernate.dialect.PostgreSQLDialect
+                default_schema: appointment
 
     flyway:
         enabled: true
         locations: classpath:db/migration
         baseline-on-migrate: true
+        schemas: appointment
+        default-schema: appointment
 
     kafka:
         bootstrap-servers: ${KAFKA_BROKER:localhost:29093}
