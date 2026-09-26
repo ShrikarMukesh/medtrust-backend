@@ -46,14 +46,44 @@ public class AuthService {
         this.kafkaProducer = kafkaProducer;
     }
 
+    /**
+     * Public self-registration — always creates a PATIENT.
+     * Staff accounts (ADMIN, DOCTOR, NURSE, RECEPTIONIST) must be created by an ADMIN
+     * via the protected POST /api/auth/register/admin endpoint.
+     */
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.email())) {
             throw new IllegalArgumentException("Email " + request.email() + " is already registered");
         }
 
+        // Self-registration is always PATIENT — prevents privilege escalation
         String passwordHash = passwordService.hash(request.password());
-        Role role = Role.valueOf(request.role().toUpperCase());
+        User user = User.create(request.email(), passwordHash,
+                request.firstName(), request.lastName(), Role.PATIENT);
+        User saved = userRepository.save(user);
+        publishDomainEvents(saved);
 
+        return buildAuthResponse(saved);
+    }
+
+    /**
+     * Admin-only registration — allows creating any role (ADMIN, DOCTOR, NURSE, etc.).
+     * Secured at the SecurityConfig level: POST /api/auth/register/admin requires ADMIN role.
+     */
+    public AuthResponse adminCreateUser(RegisterRequest request) {
+        if (userRepository.existsByEmail(request.email())) {
+            throw new IllegalArgumentException("Email " + request.email() + " is already registered");
+        }
+
+        Role role;
+        try {
+            role = Role.valueOf(request.role().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid role: " + request.role()
+                    + ". Valid roles: ADMIN, DOCTOR, NURSE, PATIENT, RECEPTIONIST");
+        }
+
+        String passwordHash = passwordService.hash(request.password());
         User user = User.create(request.email(), passwordHash,
                 request.firstName(), request.lastName(), role);
         User saved = userRepository.save(user);

@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import styles from './Sidebar.module.css';
@@ -16,14 +16,53 @@ import {
   ChevronRight,
   Activity,
 } from 'lucide-react';
+import { getCurrentUserRole } from '@/lib/api/auth';
 
-const navItems = [
-  { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { href: '/patients', icon: Users, label: 'Patients' },
-  { href: '/appointments', icon: CalendarDays, label: 'Appointments' },
-  { href: '/clinical', icon: Stethoscope, label: 'Clinical' },
-  { href: '/audit', icon: ScrollText, label: 'Audit Log' },
-  { href: '/consents', icon: ShieldCheck, label: 'Consents' },
+interface NavItem {
+  href: string;
+  icon: React.ElementType;
+  label: string;
+  /** Roles allowed to see this item. Empty = all authenticated users. */
+  roles: string[];
+}
+
+const ALL_NAV_ITEMS: NavItem[] = [
+  {
+    href: '/dashboard',
+    icon: LayoutDashboard,
+    label: 'Dashboard',
+    roles: [], // all roles
+  },
+  {
+    href: '/patients',
+    icon: Users,
+    label: 'Patients',
+    roles: ['ADMIN', 'DOCTOR', 'NURSE', 'RECEPTIONIST'],
+  },
+  {
+    href: '/appointments',
+    icon: CalendarDays,
+    label: 'Appointments',
+    roles: ['ADMIN', 'DOCTOR', 'NURSE', 'RECEPTIONIST'],
+  },
+  {
+    href: '/clinical',
+    icon: Stethoscope,
+    label: 'Clinical',
+    roles: ['ADMIN', 'DOCTOR', 'NURSE'],
+  },
+  {
+    href: '/consents',
+    icon: ShieldCheck,
+    label: 'Consents',
+    roles: ['ADMIN', 'DOCTOR', 'PATIENT'],
+  },
+  {
+    href: '/audit',
+    icon: ScrollText,
+    label: 'Audit Log',
+    roles: ['ADMIN'],
+  },
 ];
 
 interface SidebarProps {
@@ -33,6 +72,15 @@ interface SidebarProps {
 
 export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const pathname = usePathname();
+  const [role, setRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    setRole(getCurrentUserRole());
+  }, []);
+
+  const visibleNavItems = ALL_NAV_ITEMS.filter(
+    (item) => item.roles.length === 0 || (role && item.roles.includes(role))
+  );
 
   return (
     <aside className={clsx(styles.sidebar, collapsed && styles.collapsed)}>
@@ -46,7 +94,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
 
       {/* Navigation */}
       <nav className={styles.nav}>
-        {navItems.map((item) => {
+        {visibleNavItems.map((item) => {
           const isActive = pathname.startsWith(item.href);
           return (
             <Link

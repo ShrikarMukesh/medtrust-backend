@@ -26,6 +26,17 @@ public class AuthController {
                 .body(Map.of("success", true, "data", response));
     }
 
+    /**
+     * Admin-only: create staff accounts with any role (ADMIN, DOCTOR, NURSE, RECEPTIONIST).
+     * Secured by SecurityConfig: requires ADMIN role JWT.
+     */
+    @PostMapping("/register/admin")
+    public ResponseEntity<Map<String, Object>> adminRegister(@Valid @RequestBody RegisterRequest request) {
+        AuthResponse response = authService.adminCreateUser(request);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(Map.of("success", true, "data", response));
+    }
+
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@Valid @RequestBody LoginRequest request) {
         AuthResponse response = authService.login(request);

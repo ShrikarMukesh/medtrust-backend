@@ -19,13 +19,16 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    if (!email || !password) {
+      setError('Email and password are required.');
+      return;
+    }
+
     setLoading(true);
 
     try {
-      await login({
-        email: email || 'admin@medtrust.com',
-        password: password || 'password123',
-      });
+      await login({ email, password });
       router.push('/dashboard');
     } catch (err) {
       if (err instanceof ApiError) {

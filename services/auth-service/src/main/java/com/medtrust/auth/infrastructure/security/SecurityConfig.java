@@ -35,9 +35,13 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/auth/register").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/refresh").permitAll()
+                        // Logout uses refresh token (not access token) — must be public
+                        // to allow logout even when access token is already expired
+                        .requestMatchers(HttpMethod.POST, "/api/auth/logout").permitAll()
                         // Actuator
                         .requestMatchers("/actuator/**").permitAll()
                         // Admin-only endpoints
+                        .requestMatchers(HttpMethod.POST, "/api/auth/register/admin").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/users").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/users/{id}").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/users/{id}").hasRole("ADMIN")

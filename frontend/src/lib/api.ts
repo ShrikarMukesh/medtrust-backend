@@ -36,24 +36,22 @@ function getAuthToken(): string | null {
   return localStorage.getItem('medtrust_access_token');
 }
 
-export async function apiFetch<T>(
-  baseUrl: string,
-  path: string,
-  options: RequestInit = {}
-): Promise<T> {
+function buildHeaders(options: RequestInit): Record<string, string> {
   const token = getAuthToken();
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...((options.headers as Record<string, string>) || {}),
   };
-
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
+  return headers;
+}
 
+async function doFetch<T>(baseUrl: string, path: string, options: RequestInit): Promise<T> {
   const res = await fetch(`${baseUrl}${path}`, {
     ...options,
-    headers,
+    headers: buildHeaders(options),
   });
 
   if (!res.ok) {
@@ -68,4 +66,42 @@ export async function apiFetch<T>(
   }
 
   return json.data;
+}
+
+/** Flag to prevent infinite refresh loops */
+let isRefreshing = false;
+
+export async function apiFetch<T>(
+  baseUrl: string,
+  path: string,
+  options: RequestInit = {}
+): Promise<T> {
+  try {
+    return await doFetch<T>(baseUrl, path, options);
+  } catch (err) {
+    // Auto-refresh on 401: attempt token refresh once, then retry
+    if (err instanceof ApiError && err.status === 401 && !isRefreshing) {
+      isRefreshing = true;
+      try {
+        // Dynamically import to avoid circular dependency
+        const { refreshAccessToken } = await import('./api/auth');
+        await refreshAccessToken();
+        isRefreshing = false;
+        // Retry original request with new token
+        return await doFetch<T>(baseUrl, path, options);
+      } catch {
+        isRefreshing = false;
+        // Refresh failed — clear auth and redirect to login
+        localStorage.removeItem('medtrust_access_token');
+        localStorage.removeItem('medtrust_refresh_token');
+        localStorage.removeItem('medtrust_user_role');
+        localStorage.removeItem('medtrust_user');
+        if (typeof window !== 'undefined') {
+          window.location.href = '/login';
+        }
+        throw new ApiError(401, 'Session expired. Please log in again.');
+      }
+    }
+    throw err;
+  }
 }

@@ -18,6 +18,8 @@ export async function login(data: LoginData): Promise<AuthResponse> {
   if (isMockMode()) {
     localStorage.setItem('medtrust_access_token', mockAuthResponse.accessToken);
     localStorage.setItem('medtrust_refresh_token', mockAuthResponse.refreshToken);
+    localStorage.setItem('medtrust_user_role', mockAuthResponse.user.role);
+    localStorage.setItem('medtrust_user', JSON.stringify(mockAuthResponse.user));
     return mockAuthResponse;
   }
   const res = await apiFetch<AuthResponse>(BASE, '/api/auth/login', {
@@ -25,6 +27,8 @@ export async function login(data: LoginData): Promise<AuthResponse> {
   });
   localStorage.setItem('medtrust_access_token', res.accessToken);
   localStorage.setItem('medtrust_refresh_token', res.refreshToken);
+  localStorage.setItem('medtrust_user_role', res.user.role);
+  localStorage.setItem('medtrust_user', JSON.stringify(res.user));
   return res;
 }
 
@@ -35,6 +39,8 @@ export async function register(data: RegisterData): Promise<AuthResponse> {
   });
   localStorage.setItem('medtrust_access_token', res.accessToken);
   localStorage.setItem('medtrust_refresh_token', res.refreshToken);
+  localStorage.setItem('medtrust_user_role', res.user.role);
+  localStorage.setItem('medtrust_user', JSON.stringify(res.user));
   return res;
 }
 
@@ -48,6 +54,8 @@ export async function refreshAccessToken(): Promise<AuthResponse> {
   });
   localStorage.setItem('medtrust_access_token', res.accessToken);
   localStorage.setItem('medtrust_refresh_token', res.refreshToken);
+  localStorage.setItem('medtrust_user_role', res.user.role);
+  localStorage.setItem('medtrust_user', JSON.stringify(res.user));
   return res;
 }
 
@@ -73,11 +81,33 @@ export function logout() {
   }
   localStorage.removeItem('medtrust_access_token');
   localStorage.removeItem('medtrust_refresh_token');
+  localStorage.removeItem('medtrust_user_role');
+  localStorage.removeItem('medtrust_user');
 }
 
 export function isAuthenticated(): boolean {
   if (typeof window === 'undefined') return false;
   return !!localStorage.getItem('medtrust_access_token');
+}
+
+/** Returns the current user's role from localStorage, or null if not logged in */
+export function getCurrentUserRole(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('medtrust_user_role');
+}
+
+/** Returns the current user object from localStorage (sync, no network call) */
+export function getCurrentUserFromStorage(): AuthResponse['user'] | null {
+  if (typeof window === 'undefined') return null;
+  const raw = localStorage.getItem('medtrust_user');
+  if (!raw) return null;
+  try { return JSON.parse(raw); } catch { return null; }
+}
+
+/** Check if current user has a specific role */
+export function hasRole(...roles: string[]): boolean {
+  const role = getCurrentUserRole();
+  return role != null && roles.includes(role);
 }
 
 export { ApiError };
