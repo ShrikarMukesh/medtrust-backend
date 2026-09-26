@@ -5,31 +5,23 @@ import com.medtrust.appointment.application.dto.AppointmentResponse;
 import com.medtrust.appointment.application.dto.RescheduleAppointmentRequest;
 import com.medtrust.appointment.application.service.AppointmentService;
 import jakarta.validation.Valid;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
-
-import com.medtrust.appointment.infrastructure.messaging.rabbitmq.NotificationProducer;
 
 @RestController
 @RequestMapping("/api/appointments")
 public class AppointmentController {
 
     private final AppointmentService appointmentService;
-    private final NotificationProducer notificationProducer;
 
-    public AppointmentController(AppointmentService appointmentService, NotificationProducer notificationProducer) {
+    public AppointmentController(AppointmentService appointmentService) {
         this.appointmentService = appointmentService;
-        this.notificationProducer = notificationProducer;
-    }
-
-    @PostMapping("/test-sms")
-    public ResponseEntity<Map<String, Object>> testSms(@RequestParam String phone, @RequestParam String msg) {
-        notificationProducer.sendSmsNotification(phone, msg);
-        return ResponseEntity.ok(Map.of("success", true, "message", "SMS command sent to RabbitMQ"));
     }
 
     @PostMapping
@@ -42,13 +34,36 @@ public class AppointmentController {
     @GetMapping
     public ResponseEntity<Map<String, Object>> getAll() {
         List<AppointmentResponse> response = appointmentService.getAll();
-        return ResponseEntity.ok(Map.of("success", true, "data", response));
+        return ResponseEntity.ok(Map.of("success", true, "data", response, "count", response.size()));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Map<String, Object>> getById(@PathVariable String id) {
         AppointmentResponse response = appointmentService.getById(id);
         return ResponseEntity.ok(Map.of("success", true, "data", response));
+    }
+
+    /** Get all appointments for a specific patient */
+    @GetMapping("/patient/{patientId}")
+    public ResponseEntity<Map<String, Object>> getByPatient(@PathVariable String patientId) {
+        List<AppointmentResponse> response = appointmentService.getByPatientId(patientId);
+        return ResponseEntity.ok(Map.of("success", true, "data", response, "count", response.size()));
+    }
+
+    /** Get all appointments for a specific provider */
+    @GetMapping("/provider/{providerId}")
+    public ResponseEntity<Map<String, Object>> getByProvider(@PathVariable String providerId) {
+        List<AppointmentResponse> response = appointmentService.getByProviderId(providerId);
+        return ResponseEntity.ok(Map.of("success", true, "data", response, "count", response.size()));
+    }
+
+    /** Get appointments within a date range — expects ISO-8601 Instant strings */
+    @GetMapping("/date-range")
+    public ResponseEntity<Map<String, Object>> getByDateRange(
+            @RequestParam Instant start,
+            @RequestParam Instant end) {
+        List<AppointmentResponse> response = appointmentService.getByDateRange(start, end);
+        return ResponseEntity.ok(Map.of("success", true, "data", response, "count", response.size()));
     }
 
     @PutMapping("/{id}/cancel")
@@ -75,6 +90,13 @@ public class AppointmentController {
     @PutMapping("/{id}/complete")
     public ResponseEntity<Map<String, Object>> complete(@PathVariable String id) {
         AppointmentResponse response = appointmentService.complete(id);
+        return ResponseEntity.ok(Map.of("success", true, "data", response));
+    }
+
+    /** Mark a patient as a no-show for a scheduled/confirmed appointment */
+    @PutMapping("/{id}/no-show")
+    public ResponseEntity<Map<String, Object>> markNoShow(@PathVariable String id) {
+        AppointmentResponse response = appointmentService.markNoShow(id);
         return ResponseEntity.ok(Map.of("success", true, "data", response));
     }
 }

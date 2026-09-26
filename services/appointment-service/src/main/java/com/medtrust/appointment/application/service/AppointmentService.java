@@ -88,6 +88,35 @@ public class AppointmentService {
         return toResponse(findByIdOrThrow(id));
     }
 
+    @Transactional(readOnly = true)
+    public List<AppointmentResponse> getByPatientId(String patientId) {
+        return appointmentRepository.findByPatientId(patientId).stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<AppointmentResponse> getByProviderId(String providerId) {
+        return appointmentRepository.findByProviderId(providerId).stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<AppointmentResponse> getByDateRange(Instant start, Instant end) {
+        return appointmentRepository.findByDateRange(start, end).stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    public AppointmentResponse markNoShow(String id) {
+        Appointment appointment = findByIdOrThrow(id);
+        appointment.markNoShow();
+        Appointment saved = appointmentRepository.save(appointment);
+        publishDomainEvents(saved);
+        return toResponse(saved);
+    }
+
     private Appointment findByIdOrThrow(String id) {
         return appointmentRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Appointment with ID " + id + " not found"));

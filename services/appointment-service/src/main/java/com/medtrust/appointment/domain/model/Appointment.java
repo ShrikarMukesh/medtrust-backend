@@ -115,6 +115,14 @@ public class Appointment {
         // Event could be added here if needed
     }
 
+    public void markNoShow() {
+        if (this.status != AppointmentStatus.SCHEDULED && this.status != AppointmentStatus.CONFIRMED) {
+            throw new IllegalStateException("Can only mark no-show for scheduled or confirmed appointments");
+        }
+        this.status = AppointmentStatus.NO_SHOW;
+        this.updatedAt = Instant.now();
+    }
+
     // ── Domain events ──
 
     private void addDomainEvent(DomainEvent event) {
