@@ -19,7 +19,7 @@ resources:
 env:
   DB_HOST: medtrust-postgres
   DB_PORT: "5432"
-  DB_DATABASE: patient_service
+  DB_DATABASE: medtrust
   DB_USERNAME: medtrust
   KAFKA_BROKER: medtrust-kafka:9092
   SPRING_PROFILES_ACTIVE: dev

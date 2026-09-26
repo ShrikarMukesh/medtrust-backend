@@ -1,8 +1,11 @@
-CREATE DATABASE clinical_service;
-CREATE DATABASE appointment_service;
-CREATE DATABASE patient_service;
-CREATE DATABASE auth_service;
-CREATE DATABASE consent_service;
-CREATE DATABASE audit_service;
-CREATE DATABASE notification_service;
-CREATE DATABASE integration_service;
+-- Single medtrust database with schema-per-service isolation
+\c medtrust
+
+CREATE SCHEMA IF NOT EXISTS auth         AUTHORIZATION medtrust;
+CREATE SCHEMA IF NOT EXISTS appointment  AUTHORIZATION medtrust;
+CREATE SCHEMA IF NOT EXISTS clinical     AUTHORIZATION medtrust;
+CREATE SCHEMA IF NOT EXISTS patient      AUTHORIZATION medtrust;
+CREATE SCHEMA IF NOT EXISTS consent      AUTHORIZATION medtrust;
+CREATE SCHEMA IF NOT EXISTS audit        AUTHORIZATION medtrust;
+CREATE SCHEMA IF NOT EXISTS notification AUTHORIZATION medtrust;
+CREATE SCHEMA IF NOT EXISTS integration  AUTHORIZATION medtrust;
